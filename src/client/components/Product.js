@@ -39,7 +39,7 @@ class Product extends Component {
           })}
         </tbody>
       </table>
-      <VictoryChart
+      {/* <VictoryChart
         height={140}
         scale={{x: 'time', y: 'linear'}}
         animate={{duration: 1000, onLoad: { duration: 0 }}}
@@ -50,7 +50,7 @@ class Product extends Component {
           const line = this.state.lines[name]
           return <VictoryLine interpolation='natural' data={line} key={name} />
         })}
-      </VictoryChart>
+      </VictoryChart> */}
     </div>
   }
 }

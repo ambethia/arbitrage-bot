@@ -9,6 +9,8 @@ const LIQUIDITY_DELTA = 0.001
 
 class Kraken extends EventEmitter {
   products = []
+  graph = {}
+  rates = {}
 
   get name () {
     return 'Kraken'
@@ -76,7 +78,7 @@ class Kraken extends EventEmitter {
         const base = normalize(product.base)
         const quote = normalize(product.quote)
         const displayName = `${base}-${quote}`
-        const fee = num(product.fees[0][1])
+        const fee = num(product.fees[0][1]).set_precision(8)
         const productObject = {
           base,
           quote,
