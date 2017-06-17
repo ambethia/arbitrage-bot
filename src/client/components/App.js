@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
-import Product from './Product'
+import moment from 'moment'
 
 class App extends Component {
   state = {
-    snapshot: {}
+    opportunities: []
   }
 
   async componentDidMount () {
@@ -15,16 +15,34 @@ class App extends Component {
   }
 
   async fetchData () {
-    const snapshot = await window.fetch('/snapshot').then(r => r.json())
-    this.setState({ snapshot })
+    const opportunities = await window.fetch('/opportunities').then(r => r.json())
+    this.setState({ opportunities })
   }
 
   render () {
-    const products = Object.keys(this.state.snapshot)
-    return <div>
-      {products.map(product => (
-        <Product name={product} snapshot={this.state.snapshot[product]} key={product} />
-      ))}
+    return <div className='container'>
+      <h1>Arbitrage</h1>
+      <table>
+        {Object.keys(this.state.opportunities).map(exchange => {
+          const opportunities = this.state.opportunities[exchange]
+          return <tbody key={exchange}>
+            <tr>
+              <th>{exchange}</th>
+              <th>Profit</th>
+              <th>Created</th>
+              <th>Duration</th>
+            </tr>
+            {Object.values(opportunities).sort((a, b) => new Date(b.open) - new Date(a.open)).map(o => (
+              <tr key={o.md5} style={{ backgroundColor: moment(o.seen).isSameOrAfter(moment().subtract(2, 'seconds')) ? '#d7f6d5' : 'inherit' }}>
+                <td>{o.seq.join('▸')}</td>
+                <td>{((o.val - 1) * 100).toFixed(2)}%</td>
+                <td>{moment(o.open).fromNow()}</td>
+                <td>{moment(o.seen).to(o.open, true)}</td>
+              </tr>
+              ))}
+          </tbody>
+        })}
+      </table>
     </div>
   }
 }

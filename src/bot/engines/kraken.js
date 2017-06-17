@@ -1,7 +1,7 @@
 import EventEmitter from 'events'
 import fetch from 'node-fetch'
 import throttle from 'p-throttle'
-import num from 'num'
+import arbitrage from '../arbitrage'
 
 const REST_BASE_URL = 'https://api.kraken.com/0/public'
 const PUBLIC_REQUESTS_PER_SECOND = 3
@@ -9,8 +9,7 @@ const LIQUIDITY_DELTA = 0.001
 
 class Kraken extends EventEmitter {
   products = []
-  graph = {}
-  rates = {}
+  opportunities = []
 
   get name () {
     return 'Kraken'
@@ -27,40 +26,45 @@ class Kraken extends EventEmitter {
     }
   }
 
+  arbitrage () {
+    this.opportunities = arbitrage(this.products)
+  }
+
   async updatePrices () {
     this.products.forEach(async product => {
       const data = await get(`/Depth?pair=${product.name}`)
       const book = Object.values(data)[0]
       const bids = book.bids.slice()
       const asks = book.asks.slice()
-      let [bidPrice, bidDepth] = bids.shift().map(n => num(n))
-      let [askPrice, askDepth] = asks.shift().map(n => num(n))
+      let [bidPrice, bidDepth] = bids.shift().map(n => parseFloat(n))
+      let [askPrice, askDepth] = asks.shift().map(n => parseFloat(n))
       for (let [price, depth] of bids) {
-        if (bidPrice.sub(price).gt(bidPrice.mul(LIQUIDITY_DELTA))) break
-        bidDepth = bidDepth.add(depth)
+        if (bidPrice - parseFloat(price) > bidPrice * LIQUIDITY_DELTA) break
+        bidDepth += parseFloat(depth)
       }
       for (let [price, depth] of asks) {
-        if (askPrice.sub(price).abs().gt(askPrice.mul(LIQUIDITY_DELTA))) break
-        askDepth = askDepth.add(depth)
+        if (Math.abs(askPrice - parseFloat(price)) > askPrice * LIQUIDITY_DELTA) break
+        askDepth += parseFloat(depth)
       }
       let changed = false
-      if (!product.bid.price.eq(bidPrice)) {
+      if (product.bid.price !== bidPrice) {
         product.bid.price = bidPrice
         changed = true
       }
-      if (!product.bid.depth.eq(bidDepth)) {
+      if (product.bid.depth !== bidDepth) {
         product.bid.depth = bidDepth
         changed = true
       }
-      if (!product.ask.price.eq(askPrice)) {
+      if (product.ask.price !== askPrice) {
         product.ask.price = askPrice
         changed = true
       }
-      if (!product.ask.depth.eq(askDepth)) {
+      if (product.ask.depth !== askDepth) {
         product.ask.depth = askDepth
         changed = true
       }
       if (changed) {
+        this.arbitrage()
         this.emit('update', product)
       }
     })
@@ -78,15 +82,15 @@ class Kraken extends EventEmitter {
         const base = normalize(product.base)
         const quote = normalize(product.quote)
         const displayName = `${base}-${quote}`
-        const fee = num(product.fees[0][1]).set_precision(8)
+        const fee = parseFloat(product.fees[0][1])
         const productObject = {
           base,
           quote,
           name: product.altname,
           displayName,
           exchange: this.name,
-          bid: { price: num(0), depth: num(0) },
-          ask: { price: num(0), depth: num(0) },
+          bid: { price: 0, depth: 0 },
+          ask: { price: 0, depth: 0 },
           fee
         }
         console.log(`Registering product on ${this.name}: ${displayName}`)
