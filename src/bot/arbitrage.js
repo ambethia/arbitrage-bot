@@ -29,8 +29,8 @@ const arbitrage = (products, opportunityList, fee) => {
       const arb = rates.reduce((p, n) => p * n * (1 - fee / 100))
       opportunities[key] = arb
       if (arb > 1) {
-        console.log(rates.join(' * ') + ' = ' + arb)
-        console.log(trades.join(', then '))
+        // console.log(rates.join(' * ') + ' = ' + arb)
+        // console.log(trades.join(', then '))
       }
     }
   }
