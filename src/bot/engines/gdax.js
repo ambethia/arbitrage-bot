@@ -1,14 +1,8 @@
 import EventEmitter from 'events'
-import WebSocket from 'ws'
-import fetch from 'node-fetch'
-import throttle from 'p-throttle'
 import Gdax from 'gdax'
+import arbitrage from '../arbitrage'
 
-const REST_BASE_URL = 'https://api.gdax.com'
-const WS_URL = 'wss://ws-feed.gdax.com'
-const PUBLIC_REQUESTS_PER_SECOND = 3
 const LIQUIDITY_DELTA = 0.001
-const PRECISION = 8
 const FEE = 0.25
 
 const PAIRS = [
@@ -48,40 +42,7 @@ class GDAX extends EventEmitter {
   }
 
   arbitrage () {
-    for (let key of OPPORTUNITIES) {
-      const trades = []
-      const rates = []
-      const seq = key.split('-')
-      for (let i = 0; i < 3; i++) {
-        const c1 = seq[i]
-        const c2 = seq[i + 1]
-        if (this.products.hasOwnProperty(`${c2}-${c1}`)) {
-          const product = this.products[`${c2}-${c1}`]
-          const price = product.ask.price
-          const message = `buy ${c2} with ${c1} at ${price}`
-          if (price > 0) {
-            rates.push(1 / price)
-            trades.push(message)
-          }
-        } else if (this.products.hasOwnProperty(`${c1}-${c2}`)) {
-          const product = this.products[`${c1}-${c2}`]
-          const price = product.bid.price
-          const message = `sell ${c1} for ${c2} at ${price}`
-          if (price > 0) {
-            rates.push(price)
-            trades.push(message)
-          }
-        }
-      }
-      if (rates.length === 3) {
-        const arb = rates.reduce((p, n) => p * n * (1 - FEE / 100))
-        this.opportunities[key] = arb
-        if (arb > 1) {
-          console.log(rates.join(' * ') + ' = ' + arb)
-          console.log(trades.join(', then '))
-        }
-      }
-    }
+    this.opportunities = arbitrage(this.products, OPPORTUNITIES, FEE)
   }
 
   updatePrices () {
@@ -97,7 +58,7 @@ class GDAX extends EventEmitter {
           ask: { price: 0, depth: 0 },
           fee: FEE
         }
-        console.log(`Registering product on ${this.name}: ${displayName}`)
+        this.log(`Registering product on ${this.name}: ${displayName}`)
       }
       const product = this.products[displayName]
       const book = this.book.books[displayName].state()
@@ -144,8 +105,6 @@ class GDAX extends EventEmitter {
           this.emit('update', product)
         }
       }
-      // let [bidPrice, bidDepth] = bids.shift().map(n => parseFloat(n))
-      // let [askPrice, askDepth] = asks.shift().map(n => parseFloat(n))
     })
   }
 

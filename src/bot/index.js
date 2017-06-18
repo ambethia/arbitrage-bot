@@ -1,13 +1,13 @@
 import GDAX from './engines/gdax'
-import Kraken from './engines/kraken'
 import CEX from './engines/cex'
+// import Kraken from './engines/kraken'
 
 class Bot {
   opportunities = {}
   engines = [
-    // new Kraken(),
     new GDAX(),
     new CEX()
+    // new Kraken(),
   ]
 
   constructor () {

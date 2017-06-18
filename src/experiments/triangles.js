@@ -1,10 +1,10 @@
-const CEX = [
-  ['BTC', 'USD'],
-  ['BTC', 'EUR'],
-  ['ETH', 'BTC'],
-  ['ETH', 'USD'],
-  ['ETH', 'EUR']
-]
+// const CEX = [
+//   ['BTC', 'USD'],
+//   ['BTC', 'EUR'],
+//   ['ETH', 'BTC'],
+//   ['ETH', 'USD'],
+//   ['ETH', 'EUR']
+// ]
 
 const GDAX = [
   ['BTC', 'USD'],
