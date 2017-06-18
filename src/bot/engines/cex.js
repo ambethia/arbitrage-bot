@@ -1,7 +1,6 @@
 import EventEmitter from 'events'
 import crypto from 'crypto'
 import WebSocket from 'ws'
-import arbitrage from '../arbitrage'
 
 const FEE = 0.2
 
@@ -18,10 +17,17 @@ const PAIRS = [
   ['ETH', 'EUR']
 ]
 
+const OPPORTUNITIES = [
+  'EUR-BTC-ETH-EUR',
+  'EUR-ETH-BTC-EUR',
+  'USD-BTC-ETH-USD',
+  'USD-ETH-BTC-USD'
+]
+
 class CEX extends EventEmitter {
   opportunities = {}
-  subscriptions = {}
   products = {}
+  subscriptions = {}
 
   get name () {
     return 'CEX'
@@ -40,20 +46,7 @@ class CEX extends EventEmitter {
   }
 
   arbitrage () {
-    // this.opportunities = arbitrage(Object.values(this.products))
-    // if (Object.keys(this.opportunities).length > 0) {
-    this.generateTrades()
-    // }
-  }
-
-  generateTrades () {
-    const opportunities = [
-      'USD-ETH-BTC-USD',
-      'USD-BTC-ETH-USD',
-      'EUR-ETH-BTC-EUR',
-      'EUR-BTC-ETH-EUR'
-    ]
-    for (let key of opportunities) {
+    for (let key of OPPORTUNITIES) {
       const trades = []
       const rates = []
       const seq = key.split('-')
@@ -63,7 +56,6 @@ class CEX extends EventEmitter {
         if (this.products.hasOwnProperty(`${c2}-${c1}`)) {
           const product = this.products[`${c2}-${c1}`]
           const price = product.ask.price
-          const depth = product.ask.depth
           const message = `buy ${c2} with ${c1} at ${price}`
           if (price > 0) {
             rates.push(1 / price)
@@ -72,7 +64,6 @@ class CEX extends EventEmitter {
         } else if (this.products.hasOwnProperty(`${c1}-${c2}`)) {
           const product = this.products[`${c1}-${c2}`]
           const price = product.bid.price
-          const depth = product.bid.depth
           const message = `sell ${c1} for ${c2} at ${price}`
           if (price > 0) {
             rates.push(price)

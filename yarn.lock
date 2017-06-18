@@ -2144,6 +2144,20 @@ gdax@^0.4.2:
     request "2.74.0"
     ws "1.1.1"
 
+gdax@gcperrin/gdax-node:
+  version "0.4.3"
+  resolved "https://codeload.github.com/gcperrin/gdax-node/tar.gz/0c6e44ea6099d0968f124d9e0fc90622a619b38d"
+  dependencies:
+    async "1.5.0"
+    bintrees "1.0.0"
+    lodash.assign "3.0.0"
+    lodash.foreach "3.0.0"
+    lodash.partial "3.0.0"
+    nock "3.6.0"
+    num "0.2.1"
+    request "2.74.0"
+    ws "3.0.0"
+
 generate-function@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/generate-function/-/generate-function-2.0.0.tgz#6858fe7c0969b7d4e9093337647ac79f60dfbe74"
@@ -4592,7 +4606,7 @@ ws@1.1.1:
     options ">=0.0.5"
     ultron "1.0.x"
 
-ws@^3.0.0:
+ws@3.0.0, ws@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-3.0.0.tgz#98ddb00056c8390cb751e7788788497f99103b6c"
   dependencies:

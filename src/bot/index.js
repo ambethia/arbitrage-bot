@@ -6,7 +6,7 @@ class Bot {
   opportunities = {}
   engines = [
     // new Kraken(),
-    // new GDAX()
+    new GDAX(),
     new CEX()
   ]
 
