@@ -1,9 +1,11 @@
 {
   "private": true,
   "scripts": {
-    "start": "nodemon --ignore client index.js"
+    "start": "nodemon --ignore client index.js",
+    "solo": "nodemon src/bot/solo.js"
   },
   "dependencies": {
+    "bufferutil": "^3.0.1",
     "express": "^4.15.2",
     "gdax": "^0.4.2",
     "immutability-helper": "^2.2.2",
@@ -14,7 +16,9 @@
     "p-throttle": "^1.1.0",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
-    "victory": "^0.21.0"
+    "utf-8-validate": "^3.0.2",
+    "victory": "^0.21.0",
+    "ws": "^3.0.0"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",

@@ -1,5 +1,6 @@
 import _ from 'lodash'
-import hash from './hash'
+// import hash from './hash'
+import rotateToFiat from './rotateToFiat'
 
 const arbitrage = (products) => {
   const graph = { ROOT: {} }
@@ -14,8 +15,8 @@ const arbitrage = (products) => {
 
   products.forEach((product) => {
     const { base, quote, fee, bid, ask } = product
-    updateGraph(base, quote, ask.price, fee)
-    updateGraph(quote, base, 1 / bid.price, fee)
+    updateGraph(base, quote, 1 / ask.price, fee)
+    updateGraph(quote, base, bid.price, fee)
   })
 
   const dist = {}
@@ -55,34 +56,32 @@ const arbitrage = (products) => {
   if (!arbitrage) { return [] }
 
   // Calculate the arbitrage sequences
-  let sequences = []
+  let sequences = {}
   Object.keys(cyclic).forEach((v) => {
     // visit predecessors to trace vertices in cycle
     const visited = { [v]: true }
-    const seq = []
+    let seq = []
     let p = v
     do {
       seq.push(p)
       visited[p] = true
       p = pred[p]
     } while (p && !visited[p])
-    seq.reverse().push(seq[0])
+    seq.reverse()
+    seq = rotateToFiat(seq)
+    seq.push(seq[0])
+    let msg = ''
     // Calculate the arbitrage amount
     const val = Array.apply(null, Array(seq.length - 1)).reduce((v, _, i) => {
       const rate = rates[seq[i]][seq[i + 1]]
       return rate ? v * rate : 0
     }, 1)
-    const md5 = hash(seq.join('') + val.toFixed(2))
-    sequences.push({
-      seq,
-      val,
-      md5
-    })
+    if (seq.length === 4 && val > 1) {
+      sequences[seq.join('-')] = val
+      console.log(msg)
+    }
   })
-  // sort the sequences in descending order of value
-  sequences.sort((a, b) => b.val - a.val)
-  // Return valid triangular arbitrage opportunities
-  return sequences.filter(s => s.val > 1 && s.seq.length === 4)
+  return sequences
 }
 
 export default arbitrage
