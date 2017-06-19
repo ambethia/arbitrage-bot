@@ -27,12 +27,16 @@ class App extends Component {
           return <tbody key={exchange}>
             <tr>
               <th>{exchange}</th>
+              <th />
               <th>Profit</th>
             </tr>
             {Object.keys(opportunities).map(o => (
               <tr key={o}>
                 <td>{o.replace(/-/g, '▸')}</td>
-                <td>{((opportunities[o] - 1) * 100).toFixed(2)}%</td>
+                <td>
+                  <pre><code>{JSON.stringify(opportunities[o], null, '\t')}</code></pre>
+                </td>
+                <td>{((opportunities[o].arbitrage - 1) * 100).toFixed(2)}%</td>
               </tr>
               ))}
           </tbody>

@@ -5,7 +5,7 @@ import CEX from './engines/cex'
 class Bot {
   opportunities = {}
   engines = [
-    new GDAX(),
+    // new GDAX(),
     new CEX()
     // new Kraken(),
   ]

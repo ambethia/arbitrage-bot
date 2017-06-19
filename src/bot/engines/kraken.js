@@ -5,7 +5,7 @@ import arbitrage from '../arbitrage'
 
 const REST_BASE_URL = 'https://api.kraken.com/0/public'
 const PUBLIC_REQUESTS_PER_SECOND = 3
-const LIQUIDITY_DELTA = 0.001
+const LIQUIDITY_DELTA = 0.002
 
 class Kraken extends EventEmitter {
   products = []

@@ -2,7 +2,7 @@ import EventEmitter from 'events'
 import Gdax from 'gdax'
 import arbitrage from '../arbitrage'
 
-const LIQUIDITY_DELTA = 0.001
+const LIQUIDITY_DELTA = 0.002
 const FEE = 0.25
 
 const PAIRS = [
