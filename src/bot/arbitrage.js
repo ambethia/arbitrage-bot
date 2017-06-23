@@ -1,57 +1,80 @@
-const EXPOSURE = 1000 // Max USD to trade
-const MAX_DEPTH = 0.5 // How far into the current depth (within the LIQUIDITY_DELTA) we're willing to go.
+const EXPOSURE = 100 // Max USD (or EUR) to trade
+const MAX_DEPTH = 0.25 // How far into the current depth (within the LIQUIDITY_DELTA) we're willing to go.
 
-const arbitrage = (products, opportunityList, fee) => {
+const arbitrage = (products, opportunityList) => {
   const opportunities = {}
   for (let key of opportunityList) {
     const trades = []
-    const rates = []
     const seq = key.split('-')
     for (let i = 0; i < 3; i++) {
       const c1 = seq[i]
       const c2 = seq[i + 1]
       if (products.hasOwnProperty(`${c2}-${c1}`)) {
-        const product = products[`${c2}-${c1}`]
-        const price = product.ask.price
-        const message = `buy ${c2} with ${c1} at ${price}`
+        const productId = `${c2}-${c1}`
+        const product = products[productId]
+        const { price, depth } = product.ask
+        const fiatRate = products[`${c2}-${seq[0]}`].ask.price
         if (price > 0) {
-          rates.push(1 / price)
           trades.push({
-            message,
-            depth: product.ask.depth,
-            depthUSD: product.ask.depth * products[`${c2}-USD`].ask.price
+            c1,
+            c2,
+            productId,
+            action: 'buy',
+            depth,
+            rate: 1 / price,
+            fiatRate,
+            fiatDepth: depth * fiatRate,
+            fee: product.fee
           })
         }
       } else if (products.hasOwnProperty(`${c1}-${c2}`)) {
-        const product = products[`${c1}-${c2}`]
-        const price = product.bid.price
-        const message = `sell ${c1} for ${c2} at ${price}`
+        const productId = `${c1}-${c2}`
+        const product = products[productId]
+        const { price, depth } = product.bid
+        const fiatRate = products[`${c1}-${seq[0]}`].bid.price
         if (price > 0) {
-          rates.push(price)
           trades.push({
-            message,
-            depth: product.bid.depth,
-            depthUSD: product.bid.depth * products[`${c1}-USD`].bid.price
+            c1,
+            c2,
+            productId,
+            action: 'sell',
+            depth,
+            rate: price,
+            fiatRate,
+            fiatDepth: depth * fiatRate,
+            fee: product.fee
           })
         }
       }
     }
-    if (rates.length === 3) {
-      const arbitrage = rates.reduce((p, n) => p * n * (1 - fee / 100))
-      const amount = Math.min(Math.min(...trades.map(t => t.depthUSD * MAX_DEPTH)), EXPOSURE)
+    if (trades.length === 3) {
+      const arbitrage = trades.reduce((a, t) => a * t.rate * (1 - t.fee), 1)
+      const maximum = Math.min(...trades.map(t => t.fiatDepth * MAX_DEPTH))
+      const amount = Math.min(maximum, EXPOSURE)
       const potential = (amount * arbitrage - amount).toFixed(2)
+      // Figure out amount for market order on each trade
+      for (let i = 0; i < trades.length; i++) {
+        const trade = trades[i]
+        trade.amount = i === 0 ? amount : trades[i - 1].expect
+        trade.expect = trade.amount * trade.rate * (1 - trade.fee)
+        if (trade.action === 'buy') {
+          trade.size = trade.expect
+          trade.message = `buy ${trade.expect} ${trade.c2} with ${trade.amount} ${trade.c1} at ${1 / trade.rate}`
+        } else {
+          trade.size = trade.amount
+          trade.message = `sell ${trade.amount} ${trade.c1} for ${trade.expect} ${trade.c2} at ${trade.rate}`
+        }
+      }
       opportunities[key] = {
+        maximum,
         potential,
         arbitrage,
         amount,
         trades
-      }
-      if (arbitrage > 1) {
-        // TODO Execute trades
       }
     }
   }
   return opportunities
 }
 
-export default arbitrage
+module.exports = arbitrage

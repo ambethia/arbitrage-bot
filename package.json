@@ -1,26 +1,32 @@
 {
   "private": true,
   "scripts": {
-    "start": "nodemon --ignore client index.js",
-    "solo": "nodemon src/bot/solo.js"
+    "start": "node index.js",
+    "bot": "nodemon --ignore client src/bot/run",
+    "schema": "psql $DATABASE_URL -f schema.sql"
   },
   "dependencies": {
+    "async-lock": "^0.3.9",
     "bufferutil": "^3.0.1",
     "express": "^4.15.2",
-    "gdax": "gcperrin/gdax-node",
+    "gdax": "ambethia/gdax-node",
     "immutability-helper": "^2.2.2",
     "lodash": "^4.17.4",
+    "massive": "^3.0.0-rc1",
     "moment": "^2.18.1",
     "node-fetch": "^1.7.1",
     "num": "^0.3.0",
     "p-throttle": "^1.1.0",
+    "play-sound": "^1.1.1",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
+    "react-router-dom": "^4.1.1",
+    "semantic-ui-react": "^0.68.5",
     "utf-8-validate": "^3.0.2",
-    "victory": "^0.21.0",
     "ws": "^3.0.0"
   },
   "devDependencies": {
+    "autoprefixer": "^7.1.1",
     "babel-eslint": "^7.2.3",
     "babel-loader": "^7.0.0",
     "babel-polyfill": "^6.23.0",
@@ -28,6 +34,8 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.24.1",
+    "chokidar": "^1.7.0",
+    "css-loader": "^0.28.4",
     "eslint": "^3.19.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-config-standard-react": "^5.0.0",
@@ -36,10 +44,18 @@
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-react": "^7.0.0",
     "eslint-plugin-standard": "^3.0.1",
+    "extract-text-webpack-plugin": "^2.1.2",
+    "file-loader": "^0.11.2",
     "html-webpack-plugin": "^2.28.0",
     "nodemon": "^1.11.0",
+    "postcss-loader": "^2.0.6",
+    "raw-loader": "^0.5.1",
+    "react-hot-loader": "next",
+    "style-loader": "^0.18.2",
     "webpack": "^2.5.1",
     "webpack-dev-middleware": "^1.10.2",
-    "webpack-hot-middleware": "^2.18.0"
+    "webpack-hot-middleware": "^2.18.0",
+    "webpack-merge": "^4.1.0",
+    "whatwg-fetch": "^2.0.3"
   }
 }

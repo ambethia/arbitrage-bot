@@ -1,13 +1,13 @@
-import EventEmitter from 'events'
-import crypto from 'crypto'
-import WebSocket from 'ws'
-import arbitrage from '../arbitrage'
+const EventEmitter = require('events')
+const crypto = require('crypto')
+const WebSocket = require('ws')
+const arbitrage = require('../arbitrage')
 
 const WS_URL = 'wss://ws.cex.io/ws/'
 const API_KEY = process.env.CEX_API_KEY
 const API_SECRET = process.env.CEX_SECRET
 const LIQUIDITY_DELTA = 0.001
-const FEE = 0.2
+const FEE = 0.002
 const PRECISION = 8
 const PAIRS = [
   ['BTC', 'USD'],
@@ -33,9 +33,28 @@ class CEX extends EventEmitter {
     return 'CEX'
   }
 
+  get id () {
+    return 2
+  }
+
   start () {
     this.ws = new WebSocket(WS_URL, { perMessageDeflate: false })
     this.ws.on('message', (data) => this.receive(data))
+    this.ws.on('close', () => this.start())
+    setInterval(() => this.resetSubscriptions(), 120 * 1000)
+  }
+
+  async placeOrder (side, amount) {
+    return {
+      id: 123
+    }
+  }
+
+  async getOrder (id) {
+    return {
+      result: { a: 123 },
+      completed: true
+    }
   }
 
   auth () {
@@ -46,7 +65,13 @@ class CEX extends EventEmitter {
   }
 
   arbitrage () {
-    this.opportunities = arbitrage(this.products, OPPORTUNITIES, FEE)
+    this.opportunities = arbitrage(this.products, OPPORTUNITIES)
+  }
+
+  resetSubscriptions () {
+    PAIRS.forEach(([base, quote]) => {
+      this.subscribe(base, quote)
+    })
   }
 
   subscribe (base, quote) {
@@ -103,7 +128,7 @@ class CEX extends EventEmitter {
     }
     if (changed) {
       this.arbitrage()
-      this.emit('update', product)
+      this.emit('update')
     }
   }
 
@@ -145,21 +170,21 @@ class CEX extends EventEmitter {
       asks: buildSide(asks)
     }
     this.updateProduct(pair)
-    this.log(`Subscribed to ${pair}`)
   }
 
   receive (data) {
     const message = JSON.parse(data)
     switch (message.e) {
+      case 'disconnecting':
+        this.start()
+        break
       case 'connected':
         this.auth()
         break
       case 'auth':
         if (message.ok === 'ok') {
           this.log('Authenticated')
-          PAIRS.forEach(([base, quote]) => {
-            this.subscribe(base, quote)
-          })
+          this.resetSubscriptions()
         }
         break
       case 'ping':
@@ -185,8 +210,8 @@ class CEX extends EventEmitter {
   }
 
   log (...messages) {
-    console.log('CEX', JSON.stringify(messages))
+    console.log(this.name, ...messages.map(m => JSON.stringify(m)))
   }
 }
 
-export default CEX
+module.exports = CEX

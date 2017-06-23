@@ -8,13 +8,13 @@
 
 const GDAX = [
   ['BTC', 'USD'],
-  ['BTC', 'EUR'],
+  // ['BTC', 'EUR'],
   ['ETH', 'USD'],
   ['ETH', 'BTC'],
-  ['ETH', 'EUR'],
+  // ['ETH', 'EUR'],
   ['LTC', 'USD'],
-  ['LTC', 'BTC'],
-  ['LTC', 'EUR']
+  ['LTC', 'BTC']
+  // ['LTC', 'EUR']
 ]
 
 const FIAT = ['USD', 'EUR']

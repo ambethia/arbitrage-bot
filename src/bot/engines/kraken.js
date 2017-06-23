@@ -1,7 +1,7 @@
-import EventEmitter from 'events'
-import fetch from 'node-fetch'
-import throttle from 'p-throttle'
-import arbitrage from '../arbitrage'
+const EventEmitter = require('events')
+const fetch = require('node-fetch')
+const throttle = require('p-throttle')
+const arbitrage = require('../arbitrage')
 
 const REST_BASE_URL = 'https://api.kraken.com/0/public'
 const PUBLIC_REQUESTS_PER_SECOND = 3
@@ -115,4 +115,4 @@ const normalize = (currency) => {
   return currency.slice(1)
 }
 
-export default Kraken
+module.exports = Kraken

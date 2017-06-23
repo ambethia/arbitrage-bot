@@ -3,27 +3,23 @@ require('babel-polyfill')
 
 const express = require('express')
 const path = require('path')
-const server = require('./src/server').default
-
+const server = require('./src/server')
+const massive = require('massive')
 const app = express()
 
 server(app)
+
+massive({ connectionString: process.env.DATABASE_URL }).then(db => { app.set('db', db) })
 
 if (app.get('env') === 'development') {
   const webpack = require('webpack')
   const webpackConfig = require('./webpack.config')
   const compiler = webpack(webpackConfig)
   app.use(require('webpack-dev-middleware')(compiler, {
-    hot: true,
-    stats: {
-      colors: true,
-      chunks: false
-    }
-  }))
-  app.use(require('webpack-hot-middleware')(compiler, {
     noInfo: true,
-    publicPath: '/'
+    publicPath: webpackConfig.output.publicPath
   }))
+  app.use(require('webpack-hot-middleware')(compiler))
   app.use('*', function (req, res, next) {
     const filename = path.join(compiler.outputPath, 'index.html')
     compiler.outputFileSystem.readFile(filename, (error, result) => {

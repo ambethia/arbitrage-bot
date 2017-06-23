@@ -1,4 +1,3 @@
-A very minimal boilerplate.
+TODO
 
-- Express backend
-- React frontend w/ webpack
+Make formal interface for engines

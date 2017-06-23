@@ -1,49 +1,117 @@
-import EventEmitter from 'events'
-import Gdax from 'gdax'
-import arbitrage from '../arbitrage'
+const EventEmitter = require('events')
+const Gdax = require('gdax')
+const arbitrage = require('../arbitrage')
 
-const LIQUIDITY_DELTA = 0.002
-const FEE = 0.25
+const { GDAX_API_KEY, GDAX_SECRET, GDAX_PASSPHRASE } = process.env
+
+const LIQUIDITY_DELTA = 0.001
+const FEE = 0.0025
 
 const PAIRS = [
-  ['BTC', 'USD'],
-  ['BTC', 'EUR'],
+  // ['BTC', 'EUR'],
   // ['BTC', 'GBP'],
+  // ['ETH', 'EUR'],
+  // ['LTC', 'EUR']
+  ['BTC', 'USD'],
   ['ETH', 'USD'],
   ['ETH', 'BTC'],
-  ['ETH', 'EUR']
-  // ['LTC', 'USD'],
-  // ['LTC', 'BTC'],
-  // ['LTC', 'EUR']
+  ['LTC', 'USD'],
+  ['LTC', 'BTC']
 ]
 
 const OPPORTUNITIES = [
-  'EUR-BTC-ETH-EUR',
-  'EUR-ETH-BTC-EUR',
-  'USD-BTC-ETH-USD',
-  'USD-ETH-BTC-USD'
+  // 'EUR-BTC-ETH-EUR',
+  // 'EUR-ETH-BTC-EUR',
   // 'EUR-BTC-LTC-EUR',
   // 'EUR-LTC-BTC-EUR',
-  // 'USD-BTC-LTC-USD',
-  // 'USD-LTC-BTC-USD'
+
+  'USD-BTC-ETH-USD',
+  'USD-ETH-BTC-USD',
+  'USD-BTC-LTC-USD',
+  'USD-LTC-BTC-USD'
 ]
+
+const PRECISION = 8
 
 class GDAX extends EventEmitter {
   products = {}
   opportunities = {}
+  trading = false
 
   get name () {
     return 'GDAX'
   }
 
-  async start () {
+  get id () {
+    return 1
+  }
+
+  start () {
+    this.client = new Gdax.AuthenticatedClient(GDAX_API_KEY, GDAX_SECRET, GDAX_PASSPHRASE)
+    this.connectOrderBook()
+    this.updatePrices()
+  }
+
+  connectOrderBook () {
     this.book = new Gdax.OrderbookSync(PAIRS.map(p => p.join('-')))
-    this.book.on('message', (data) => { this.updatePrices() })
   }
 
   arbitrage () {
-    this.opportunities = arbitrage(this.products, OPPORTUNITIES, FEE)
+    this.opportunities = arbitrage(this.products, OPPORTUNITIES)
   }
+
+  async placeOrder (side, product, amount) {
+    const options = {
+      type: 'market',
+      product_id: product
+    }
+    return new Promise((resolve, reject) => {
+      const callback = (err, response, data) => {
+        if (err) reject(err)
+        resolve(data)
+      }
+      if (side === 'buy') {
+        options.funds = amount.toFixed(PRECISION)
+        this.client.buy(options, callback)
+      } else {
+        options.size = amount.toFixed(PRECISION)
+        this.client.sell(options, callback)
+      }
+      this.log('ORDER', options)
+    })
+  }
+
+  // async placeOrder (side, product, amount) {
+  //   this.log('Placing order:', side, product)
+  //   return new Promise((resolve, reject) => {
+  //     const callback = (err, response, data) => {
+  //       if (err) reject(err)
+  //       resolve(data)
+  //     }
+  //     setTimeout(() => { callback(null, null, { id: 123 }) }, 20)
+  //   })
+  // }
+
+  async getOrder (id) {
+    return new Promise((resolve, reject) => {
+      this.client.getOrder(id, (err, response, data) => {
+        if (err) reject(err)
+        if (data.settled) {
+          resolve({ completed: true, result: data })
+        } else {
+          resolve({ completed: false })
+        }
+      })
+    })
+  }
+
+    // async getOrder (id) {
+    //   return new Promise((resolve, reject) => {
+    //     setTimeout(() => {
+    //       resolve({ completed: true, result: { id: 123 } }, 20)
+    //     })
+    //   })
+    // }
 
   updatePrices () {
     PAIRS.forEach(([base, quote]) => {
@@ -58,7 +126,6 @@ class GDAX extends EventEmitter {
           ask: { price: 0, depth: 0 },
           fee: FEE
         }
-        this.log(`Registering product on ${this.name}: ${displayName}`)
       }
       const product = this.products[displayName]
       const book = this.book.books[displayName].state()
@@ -102,15 +169,17 @@ class GDAX extends EventEmitter {
         }
         if (changed) {
           this.arbitrage()
-          this.emit('update', product)
+          this.emit('update')
         }
       }
     })
+    setTimeout(() => this.updatePrices(), 0)
+    if (!this.book.socket) setTimeout(() => this.book.connect(), 5000)
   }
 
   log (...messages) {
-    console.log('GDAX', JSON.stringify(messages))
+    console.log(this.name, ...messages.map(m => JSON.stringify(m)))
   }
 }
 
-export default GDAX
+module.exports = GDAX
