@@ -2,13 +2,16 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
-    "bot": "nodemon --ignore client src/bot/run",
+    "dev": "nodemon --ignore client src/bot/run",
+    "bot": "forever start src/bot/run.js",
+    "stop": "forever stopall",
     "schema": "psql $DATABASE_URL -f schema.sql"
   },
   "dependencies": {
     "async-lock": "^0.3.9",
     "bufferutil": "^3.0.1",
     "express": "^4.15.2",
+    "forever": "^0.15.3",
     "gdax": "ambethia/gdax-node",
     "immutability-helper": "^2.2.2",
     "lodash": "^4.17.4",

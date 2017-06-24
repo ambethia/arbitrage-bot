@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS trades (
   exchange_id integer REFERENCES exchanges(id),
   opportunity_id integer REFERENCES opportunities(id),
   seq integer,
+  expected text NOT NULL,
+  received text,
   order_identity text,
   details json,
   placed json,

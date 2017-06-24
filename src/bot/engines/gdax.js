@@ -81,37 +81,19 @@ class GDAX extends EventEmitter {
     })
   }
 
-  // async placeOrder (side, product, amount) {
-  //   this.log('Placing order:', side, product)
-  //   return new Promise((resolve, reject) => {
-  //     const callback = (err, response, data) => {
-  //       if (err) reject(err)
-  //       resolve(data)
-  //     }
-  //     setTimeout(() => { callback(null, null, { id: 123 }) }, 20)
-  //   })
-  // }
-
   async getOrder (id) {
     return new Promise((resolve, reject) => {
       this.client.getOrder(id, (err, response, data) => {
         if (err) reject(err)
         if (data.settled) {
-          resolve({ completed: true, result: data })
+          const received = data.side === 'buy' ? data.filled_size : data.executed_value
+          resolve({ completed: true, result: data, received })
         } else {
           resolve({ completed: false })
         }
       })
     })
   }
-
-    // async getOrder (id) {
-    //   return new Promise((resolve, reject) => {
-    //     setTimeout(() => {
-    //       resolve({ completed: true, result: { id: 123 } }, 20)
-    //     })
-    //   })
-    // }
 
   updatePrices () {
     PAIRS.forEach(([base, quote]) => {

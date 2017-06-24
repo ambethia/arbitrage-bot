@@ -48,14 +48,16 @@ class Opportunity extends Component {
   }
 
   componentDidMount () {
+    const { amount } = this.props
     window.fetch(`/api/opportunities/${this.props.id}/trades`)
       .then(r => r.json())
       .then(trades => {
+        const arbitrage = trades
+          .filter(t => t.result)
+          .reduce((a, t) => a * (t.result.side === 'buy' ? (t.result.executed_value / t.result.filled_size) : (t.result.filled_size / t.result.executed_value)), 1)
         this.setState({
           trades,
-          actual: trades
-            .filter(t => t.result)
-            .reduce((a, t) => a * (t.result.executed_value / t.details.expect), 1)
+          actual: (amount * arbitrage - amount).toFixed(2)
         })
       })
   }
@@ -74,10 +76,10 @@ class Opportunity extends Component {
           ${potential}
         </Segment>
         <Segment>
-          {(this.state.actual * 100).toFixed(2)}%
+          {updated}
         </Segment>
         <Segment>
-          {updated}
+          ${this.state.actual}
         </Segment>
       </Segment.Group>
       <Segment.Group horizontal>
@@ -90,14 +92,13 @@ class Opportunity extends Component {
                     <Item.Header>{trade.details.action.toUpperCase()}</Item.Header>
                     <Item.Meta>{trade.details.productId}</Item.Meta>
                     <Item.Description>
-                      expect: {p(trade.details.expect)} <br />
+                      expect: {p(trade.expected)} <br />
                       <br />
-                      value: {p(trade.result.executed_value)} <br />
+                      value: {p(trade.received)} <br />
                     </Item.Description>
                     <Item.Description>
-                      {((trade.result.executed_value / trade.details.expect) * 100).toFixed(2)}%
+                      {((trade.received / trade.expected) * 100).toFixed(2)}%
                     </Item.Description>
-
                     <Item.Extra>{trade.details.message}</Item.Extra>
                   </Item.Content>
                 </Item>

@@ -5,7 +5,7 @@ const GDAX = require('./engines/gdax')
 // const Kraken = require('./engines/kraken')
 const player = require('play-sound')()
 
-const MIN_ARBITRAGE = 1.001  // 10 basis points
+const MIN_ARBITRAGE = 1.0025  // 25 basis points
 
 class Bot {
   opportunities = {}
@@ -59,12 +59,13 @@ class Bot {
           })
           for (let i = 0; i < opportunity.trades.length; i++) {
             const trade = opportunity.trades[i]
-            const { action, productId, size } = trade
+            const { action, productId, amount } = trade
             try {
-              const order = await engine.placeOrder(action, productId, size)
+              const order = await engine.placeOrder(action, productId, amount)
               await this.db.trades.insert({
                 exchange_id: engine.id,
                 opportunity_id: opportunityResult.id,
+                expected: trade.expect,
                 seq: i,
                 order_identity: order.id,
                 placed: order,
@@ -83,21 +84,21 @@ class Bot {
 
   async resolveTrades (engine, done) {
     const trades = await this.db.trades.find({ completed: false, exchange_id: engine.id })
-    let unresolved = false
+    let resolvedCount = 0
     trades.forEach(async trade => {
-      const { completed, result } = await engine.getOrder(trade.order_identity)
+      const { completed, result, received } = await engine.getOrder(trade.order_identity)
       if (completed) {
-        this.db.trades.update({ id: trade.id, completed, result, updated: new Date() })
-      } else {
-        unresolved = true
+        await this.db.trades.update({ id: trade.id, completed, result, received, updated: new Date() })
+        resolvedCount++
       }
     })
-    if (unresolved) {
-      setTimeout(() => this.resolveTrades(engine, done), 0)
-      // TODO: handle stale incomplete trades
-    } else {
+    if (resolvedCount === 3) {
       // Wait before trading again.
-      setTimeout(() => { console.log('done'); done() }, 60 * 1000)
+      // console.log('done')
+      setTimeout(() => { done() }, 3 * 60 * 1000)
+    } else {
+      // TODO: handle stale incomplete trades
+      setTimeout(() => this.resolveTrades(engine, done), 0)
     }
   }
 
