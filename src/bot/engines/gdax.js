@@ -36,7 +36,6 @@ const PRECISION = 8
 class GDAX extends EventEmitter {
   products = {}
   opportunities = {}
-  trading = false
 
   get name () {
     return 'GDAX'
