@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS trades;
 DROP TABLE IF EXISTS opportunities;
 DROP TABLE IF EXISTS exchanges;
+DROP TABLE IF EXISTS snapshots;
 
 CREATE TABLE IF NOT EXISTS exchanges (
   id integer PRIMARY KEY,
@@ -33,6 +34,13 @@ CREATE TABLE IF NOT EXISTS trades (
   result json,
   completed boolean NOT NULL DEFAULT false,
   updated timestamp NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS snapshots (
+  id serial PRIMARY KEY,
+  exchange_id integer REFERENCES exchanges(id),
+  accounts json,
+  taken timestamp NOT NULL DEFAULT now()
 );
 
 INSERT INTO exchanges (id, name) VALUES (1, 'GDAX');

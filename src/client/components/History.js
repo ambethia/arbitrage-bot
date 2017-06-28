@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { Menu, Segment, Item } from 'semantic-ui-react'
+import moment from 'moment'
+import { Menu, Segment, Item, Table } from 'semantic-ui-react'
 
 class History extends Component {
   state = {
@@ -30,7 +31,7 @@ class History extends Component {
 
   render () {
     return <div className='History'>
-      <div>
+      <div style={{ marginBottom: '2em' }}>
         {this.state.opportunities.map((o) => <Opportunity {...o} key={o.id} />)}
       </div>
       <Menu floated='right' pagination>
@@ -73,13 +74,13 @@ class Opportunity extends Component {
           {arbitrage}
         </Segment>
         <Segment>
-          ${potential}
+          {potential}
         </Segment>
         <Segment>
-          {updated}
+          {moment(updated).format('MMMM Do YYYY, h:mm:ss a')}
         </Segment>
         <Segment>
-          ${this.state.actual}
+          {this.state.actual}
         </Segment>
       </Segment.Group>
       <Segment.Group horizontal>
@@ -92,12 +93,27 @@ class Opportunity extends Component {
                     <Item.Header>{trade.details.action.toUpperCase()}</Item.Header>
                     <Item.Meta>{trade.details.productId}</Item.Meta>
                     <Item.Description>
-                      expect: {p(trade.expected)} <br />
-                      <br />
-                      value: {p(trade.received)} <br />
-                    </Item.Description>
-                    <Item.Description>
-                      {((trade.received / trade.expected) * 100).toFixed(2)}%
+                      <Table>
+                        <Table.Body>
+                          <Table.Row>
+                            <Table.Cell collapsing />
+                            <Table.Cell>{p(trade.expected)}</Table.Cell>
+                            <Table.Cell collapsing>Expected</Table.Cell>
+                          </Table.Row>
+                          <Table.Row>
+                            <Table.Cell collapsing>&mdash;</Table.Cell>
+                            <Table.Cell>{p(trade.received)}</Table.Cell>
+                            <Table.Cell collapsing>Actual</Table.Cell>
+                          </Table.Row>
+                        </Table.Body>
+                        <Table.Footer>
+                          <Table.Row>
+                            <Table.HeaderCell collapsing />
+                            <Table.HeaderCell>{p(trade.expected - trade.received)}</Table.HeaderCell>
+                            <Table.HeaderCell collapsing>{((trade.received / trade.expected) * 100).toFixed(2)}%</Table.HeaderCell>
+                          </Table.Row>
+                        </Table.Footer>
+                      </Table>
                     </Item.Description>
                     <Item.Extra>{trade.details.message}</Item.Extra>
                   </Item.Content>

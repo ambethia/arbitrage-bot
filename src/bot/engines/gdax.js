@@ -4,7 +4,7 @@ const arbitrage = require('../arbitrage')
 
 const { GDAX_API_KEY, GDAX_SECRET, GDAX_PASSPHRASE } = process.env
 
-const LIQUIDITY_DELTA = 0.001
+const LIQUIDITY_DELTA = 0.0005
 const FEE = 0.0025
 
 const PAIRS = [
@@ -51,6 +51,23 @@ class GDAX extends EventEmitter {
     this.updatePrices()
   }
 
+  async accounts () {
+    return new Promise((resolve, reject) => {
+      this.client.getAccounts((err, resp, accounts) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(
+            accounts.reduce((a, { currency, balance }) => {
+              a[currency] = +balance.toString()
+              return a
+            }, {})
+          )
+        }
+      })
+    })
+  }
+
   connectOrderBook () {
     this.book = new Gdax.OrderbookSync(PAIRS.map(p => p.join('-')))
   }
@@ -84,7 +101,7 @@ class GDAX extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.client.getOrder(id, (err, response, data) => {
         if (err) reject(err)
-        if (data.settled) {
+        if (data && data.settled) {
           const received = data.side === 'buy' ? data.filled_size : data.executed_value
           resolve({ completed: true, result: data, received })
         } else {

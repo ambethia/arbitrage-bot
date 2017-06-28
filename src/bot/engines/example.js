@@ -90,6 +90,14 @@ class Example extends EventEmitter {
   start () {
   }
 
+  async accounts () {
+    return new Promise((resolve, reject) => {
+      resolve([
+        { currency: 'USD', balance: 42.25 }
+      ])
+    })
+  }
+
   // Returns a promise that resolves to some object with at least an ID
   async placeOrder (side, product, amount) {
     return new Promise((resolve, reject) => {

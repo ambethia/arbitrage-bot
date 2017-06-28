@@ -32,7 +32,7 @@ class Exchanges extends Component {
           <Table>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell colSpan={2}>
+                <Table.HeaderCell colSpan={3}>
                   { exchange.name }
                 </Table.HeaderCell>
               </Table.Row>
@@ -42,6 +42,7 @@ class Exchanges extends Component {
                 <Table.Row key={o}>
                   <Table.Cell>{o.replace(/-/g, '▸')}</Table.Cell>
                   <Table.Cell textAlign='right'>{((opportunities[o].arbitrage - 1) * 100).toFixed(2)}%</Table.Cell>
+                  <Table.Cell collapsing>{opportunities[o].potential}</Table.Cell>
                 </Table.Row>
             )) }
             </Table.Body>

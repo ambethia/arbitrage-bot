@@ -1,4 +1,4 @@
-const EXPOSURE = 100 // Max USD (or EUR) to trade
+const EXPOSURE = 1000 // Max USD (or EUR) to trade
 const MAX_DEPTH = 0.25 // How far into the current depth (within the LIQUIDITY_DELTA) we're willing to go.
 
 const FIAT = ['USD', 'EUR']
@@ -64,7 +64,7 @@ const arbitrage = (products, opportunityList) => {
         if (trade.action === 'buy') {
           trade.message = `Buy ${p(trade.expect, trade.c2)} ${trade.c2} with ${p(trade.amount, trade.c1)} ${trade.c1} at ${p(1 / trade.rate, trade.c1)}.`
         } else {
-          trade.message = `Sell ${p(trade.amount, trade.c1)} for ${p(trade.expect, trade.c2)} ${trade.c2} at ${p(trade.rate, trade.c2)}.`
+          trade.message = `Sell ${p(trade.amount, trade.c1)} ${trade.c1} for ${p(trade.expect, trade.c2)} ${trade.c2} at ${p(trade.rate, trade.c2)}.`
         }
       }
       opportunities[key] = {

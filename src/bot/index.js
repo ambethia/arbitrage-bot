@@ -6,6 +6,7 @@ const GDAX = require('./engines/gdax')
 const player = require('play-sound')()
 
 const MIN_ARBITRAGE = 1.0025  // 25 basis points
+const MIN_PROFIT = 2
 
 class Bot {
   opportunities = {}
@@ -44,9 +45,10 @@ class Bot {
     for (let sequence in engine.opportunities) {
       const opportunity = engine.opportunities[sequence]
       const { arbitrage, maximum, potential, amount } = opportunity
-      if (arbitrage >= MIN_ARBITRAGE) {
+      if (arbitrage >= MIN_ARBITRAGE && potential >= MIN_PROFIT) {
         this.lock.acquire(engine.name, async (done) => {
           player.play('./coin.wav')
+          this.snapshot(engine)
           // Persist opportunity in DB
           const opportunityResult = await this.db.opportunities.insert({
             exchange_id: engine.id,
@@ -95,11 +97,17 @@ class Bot {
     if (resolvedCount === 3) {
       // Wait before trading again.
       // console.log('done')
-      setTimeout(() => { done() }, 3 * 60 * 1000)
+      setTimeout(() => { done() }, 0.5 * 60 * 1000)
+      this.snapshot(engine)
     } else {
       // TODO: handle stale incomplete trades
       setTimeout(() => this.resolveTrades(engine, done), 0)
     }
+  }
+
+  async snapshot (engine) {
+    const accounts = await engine.accounts()
+    return this.db.snapshots.insert({ exchange_id: engine.id, accounts, taken: new Date() })
   }
 
   run () {
