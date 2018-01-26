@@ -1,25 +1,29 @@
 const massive = require('massive')
 const AsyncLock = require('async-lock')
-const GDAX = require('./engines/gdax')
+// const GDAX = require('./engines/gdax')
 // const CEX = require('./engines/cex')
 // const Kraken = require('./engines/kraken')
+const Binance = require('./engines/binance')
 const player = require('play-sound')()
 
-const MIN_ARBITRAGE = 1.0025  // 25 basis points
+const MIN_ARBITRAGE = 1.0025 // 25 basis points
 const MIN_PROFIT = 2
 
 class Bot {
   opportunities = {}
   engines = [
-    new GDAX()
+    // new GDAX()
     // new CEX()
     // new Kraken()
+    new Binance()
   ]
 
   constructor () {
-    massive({ connectionString: process.env.DATABASE_URL }).then(db => { this.db = db })
+    massive({ connectionString: process.env.DATABASE_URL }).then(db => {
+      this.db = db
+    })
     this.lock = new AsyncLock()
-    this.engines.forEach((engine) => {
+    this.engines.forEach(engine => {
       this.opportunities[engine.name] = {}
       engine.on('update', () => {
         this.db.exchanges.update({
@@ -46,7 +50,7 @@ class Bot {
       const opportunity = engine.opportunities[sequence]
       const { arbitrage, maximum, potential, amount } = opportunity
       if (arbitrage >= MIN_ARBITRAGE && potential >= MIN_PROFIT) {
-        this.lock.acquire(engine.name, async (done) => {
+        this.lock.acquire(engine.name, async done => {
           player.play('./coin.wav')
           this.snapshot(engine)
           // Persist opportunity in DB
@@ -97,7 +101,9 @@ class Bot {
     if (resolvedCount === 3) {
       // Wait before trading again.
       // console.log('done')
-      setTimeout(() => { done() }, 0.5 * 60 * 1000)
+      setTimeout(() => {
+        done()
+      }, 0.5 * 60 * 1000)
       this.snapshot(engine)
     } else {
       // TODO: handle stale incomplete trades
@@ -111,7 +117,7 @@ class Bot {
   }
 
   run () {
-    this.engines.forEach((engine) => {
+    this.engines.forEach(engine => {
       engine.start()
     })
     this.executeTradesAll()

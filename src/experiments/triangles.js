@@ -17,9 +17,33 @@ const GDAX = [
   // ['LTC', 'EUR']
 ]
 
-const FIAT = ['USD', 'EUR']
+const BINANCE = [
+  ['BNB', 'BTC'],
+  // ['NEO', 'BTC'],
+  ['ETH', 'BTC'],
+  // ['HSR', 'BTC'],
+  // ['LTC', 'BTC'],
+  // ['GAS', 'BTC'],
+  // ['HCC', 'BTC'],
+  // ['BCH', 'BTC'],
+  ['BNB', 'ETH']
+  // ['DNT', 'ETH'],
+  // ['OAX', 'ETH'],
+  // ['MCO', 'ETH'],
+  // ['BTM', 'ETH'],
+  // ['SNT', 'ETH'],
+  // ['EOS', 'ETH'],
+  // ['BNT', 'ETH'],
+  // ['ICN', 'ETH'],
+  // ['BTC', 'USDT'],
+  // ['ETH', 'USDT']
+  // ['QTUM', 'ETH']
+]
 
-const rotate = (seq) => {
+// const FIAT = ['USD', 'EUR']
+const FIAT = ['BTC']
+
+const rotate = seq => {
   if (seq.some(s => FIAT.includes(s))) {
     while (!FIAT.includes(seq[0])) {
       seq.push(seq.shift())
@@ -30,8 +54,9 @@ const rotate = (seq) => {
 
 const graph = {}
 
-const pairs = GDAX
+// const pairs = GDAX
 // const pairs = CEX
+const pairs = BINANCE
 
 pairs.forEach(pair => {
   const [base, quote] = pair

@@ -45,3 +45,4 @@ CREATE TABLE IF NOT EXISTS snapshots (
 
 INSERT INTO exchanges (id, name) VALUES (1, 'GDAX');
 INSERT INTO exchanges (id, name) VALUES (2, 'CEX');
+INSERT INTO exchanges (id, name) VALUES (3, 'Binance');
